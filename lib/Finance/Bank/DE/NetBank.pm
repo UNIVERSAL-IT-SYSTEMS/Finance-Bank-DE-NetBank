@@ -8,7 +8,7 @@ use Finance::Bank::DE::SpardaBank;
 
 $|++;
 
-$VERSION = "0.02";
+$VERSION = "0.03";
 
 sub Version { 
     return $VERSION;
@@ -22,7 +22,7 @@ sub new {
 		  CUSTOMER_ID => "demo",     # Demo Login
 		  PASSWORD => "",            # Demo does not require a password
 		  ACCOUNT => "2777770",      # Demo Account Number (Kontonummer)
-		  AGENT_TYPE => "Internet Explorer 6",
+                  AGENT_TYPE => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) ",
 		  , @_);
 
     if ($values{'CUSTOMER_ID'} ne "demo" && $values{'ACCOUNT'} eq "2777770") {

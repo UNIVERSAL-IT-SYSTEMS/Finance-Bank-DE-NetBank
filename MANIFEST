@@ -4,4 +4,7 @@ README
 Todo
 lib/Finance/Bank/DE/NetBank.pm
 t/001_load.t
+test/transfer_test.pl
+test/statement_test.pl
+test/saldo_test.pl
 Makefile.PL
