@@ -8,7 +8,7 @@ use Finance::Bank::DE::SpardaBank;
 
 $|++;
 
-$VERSION = "0.01";
+$VERSION = "0.02";
 
 sub Version { 
     return $VERSION;
@@ -117,6 +117,15 @@ nothing is specified the values from the constructor or the defaults will be use
 
     $account->login(ACCOUNT => "1234");
 
+=head2 saldo(%values)
+
+This method will return the current account balance called "Saldo".
+The method uses the account number if previously set.
+
+You can override/set it:
+
+    $account->saldo(ACCOUNT => "5555555");
+
 =head2 statement(%values)
 
 This method will retrieve an Account Statement (Kontoauszug). You can specify the 
@@ -169,6 +178,9 @@ L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Finance-Bank-DE-NetBank>
 Support currently available via eMail to the author.
 
 =head1 HISTORY
+
+0.02 Sun May 04 15:45:00 2003
+        - documentation fixes
 
 0.01 Sun May 04 03:00:00 2003
 	- original version;
