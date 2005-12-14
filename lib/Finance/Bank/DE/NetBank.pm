@@ -1,7 +1,7 @@
 package Finance::Bank::DE::NetBank;
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $DEBUG);
 use base qw(Class::Accessor);
 Finance::Bank::DE::NetBank->mk_accessors(
     qw(BASE_URL BLZ CUSTOMER_ID PASSWORD AGENT_TYPE AGENT ACCOUNT));
@@ -13,10 +13,15 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.00";
+$VERSION = "1.01";
+$DEBUG   = 0;
 
 sub Version {
     return $VERSION;
+}
+
+sub Debug {
+    $_[0] ? $DEBUG = $_[0] : return $DEBUG;
 }
 
 sub new {
@@ -31,10 +36,6 @@ sub new {
         AGENT_TYPE => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) ",
         @_
     );
-
-    if ( $values{'CUSTOMER_ID'} ne "demo" && $values{'ACCOUNT'} eq "2777770" ) {
-        $values{'ACCOUNT'} = $values{'CUSTOMER_ID'};
-    }
 
     my $class = ref($proto) || $proto;
     my $parent = ref($proto) && $proto;
@@ -69,11 +70,14 @@ sub login {
     $agent->field( "kundennummer", $values{'CUSTOMER_ID'} );
     $agent->field( "pin",          $values{'PASSWORD'} );
     $agent->click();
+
+    print STDERR Dumper( $agent->content ) if Debug();
 }
 
 sub saldo {
     my $self = shift;
     my $data = $self->statement(@_);
+    print STDERR Dumper($data) if Debug();
     return $data->{'STATEMENT'}{'SALDO'};
 }
 
@@ -106,7 +110,10 @@ sub statement {
 
     $agent->click();
     $agent->get( $self->BASE_URL() . "/umsatzdownload.do" );
-    my $content     = $agent->content();
+
+    my $content = $agent->content();
+    print STDERR Dumper($content) if Debug();
+
     my $csv_content = $self->_parse_csv($content);
     return $csv_content;
 }
@@ -249,7 +256,7 @@ Finance::Bank::DE::NetBank - Check your SpardaBank Bank Accounts with Perl
  use Finance::Bank::DE::NetBank;
  my $account = Finance::Bank::DE::NetBank->new(
 						 CUSTOMER_ID => "12345678",
-						 ACCOUNT_ID => "12345678",
+						 ACCOUNT => "12345678",
 						 PASSWORD => "ROUTE66",
                                                  BLZ => "70090500",
                                                  );
@@ -283,7 +290,7 @@ accounts within the directory "test" in the source directry.
 
 =head1 METHODS
 
-=head2 new(%values) 
+=head2 my $account = Finance::Bank::DE::NetBank->new(%values) 
 
 This constructor will set the default values and/or user provided values for
 connection and authentication.
@@ -302,23 +309,30 @@ If you don't provide any values the module will automatically use the demo accou
 CUSTOMER_ID is your "Kundennummer" and ACCOUNT is the "Kontonummer" 
 (if you have only one account you can skip that)
 
-=head2 connect()
+
+=head2 $account->Version()
+
+returns the module version
+
+=head2 $account->Debug($value)
+
+Set $value to 1 to get some Data::Dumper outputs on STDERR.
+
+=head2 $account->connect()
 
 This method will create the user agent and connect to the online banking website.
 Also this (done by WWW::Mechanize) automagically handles the session-id handling.
 
     $account->connect();
 
-
-
-=head2 login(%values)
+=head2 $account->login(%values)
 
 This method will try to log in with the provided authentication details. If
 nothing is specified the values from the constructor or the defaults will be used.
 
     $account->login(ACCOUNT => "1234");
 
-=head2 saldo(%values)
+=head2 $account->saldo(%values)
 
 This method will return the current account balance called "Saldo".
 The method uses the account number if previously set. 
@@ -327,8 +341,7 @@ You can override/set it:
 
     $account->saldo(ACCOUNT => "5555555");
 
-
-=head2 statement(%values)
+=head2 $account->statement(%values)
 
 This method will retrieve an account statement (Kontoauszug) and return a hashref.
 
@@ -342,9 +355,10 @@ START_DATE and END_DATE only).
                                  END_DATE => "02.05.2005",
 			    );
 
-=head2 transfer()
+=head2 $account->transfer()
 
-=head2 logout()
+
+=head2 $account->logout()
 
 This method will just log out the website and it only exists to keep the module logic clean ;-)
 
@@ -377,7 +391,10 @@ or email the author.
 
 =head1 HISTORY
 
-1.00 Tue Dec 14 00:43:00 2005
+1.01 Wed Dec 14 15:00:00 2005
+        - fixed pod errors
+        - enhanced pod
+1.00 Wed Dec 14 00:43:00 2005
         - changed URL to barrier free version (works without that new captcha)
         - replaced buggy html scraping of saldo(). saldo() now uses statement() to retrive the value.
         
@@ -390,6 +407,7 @@ or email the author.
 =head1 THANK YOU
 
  Torsten Mueller (updated URL, saldo() bug reporting)
+ Sascha Stock (reported bad example in POD)
 
 =head1 AUTHOR
 
