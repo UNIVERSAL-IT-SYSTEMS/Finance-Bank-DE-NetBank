@@ -5,6 +5,8 @@ use lib "../lib";
 use Finance::Bank::DE::NetBank;
 use Data::Dumper;
 
+$| = 1;
+
 my $account = Finance::Bank::DE::NetBank->new();
 $account->connect();
 $account->login();

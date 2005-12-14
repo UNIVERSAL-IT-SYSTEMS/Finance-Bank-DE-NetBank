@@ -7,7 +7,6 @@ WriteMakefile(
     ABSTRACT     => 'Check your NetBank Bank Accounts with Perl',
   
     PREREQ_PM    => {	
-	"Finance::Bank::DE::SpardaBank" => "0.05",
 	"WWW::Mechanize" => "0.43",
 	"Class::Accessor" => 0,
 	"HTML::TreeBuilder" => 0,

@@ -3,8 +3,10 @@ LICENSE
 README
 Todo
 lib/Finance/Bank/DE/NetBank.pm
-t/001_load.t
+t/01load.t
+t/02pod.t
 test/transfer_test.pl
 test/statement_test.pl
 test/saldo_test.pl
 Makefile.PL
+META.yml                                 Module meta-data (added by MakeMaker)
