@@ -13,7 +13,7 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.01";
+$VERSION = "1.02";
 $DEBUG   = 0;
 
 sub Version {
@@ -249,7 +249,7 @@ __END__
 
 =head1 NAME
 
-Finance::Bank::DE::NetBank - Check your SpardaBank Bank Accounts with Perl
+Finance::Bank::DE::NetBank - Check your NetBank Bank Accounts with Perl
 
 =head1 SYNOPSIS
 
@@ -391,7 +391,7 @@ or email the author.
 
 =head1 HISTORY
 
-1.01 Wed Dec 14 15:00:00 2005
+1.02 Wed Dec 14 15:00:00 2005
         - fixed pod errors
         - enhanced pod
 1.00 Wed Dec 14 00:43:00 2005
