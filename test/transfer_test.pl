@@ -6,8 +6,7 @@ use Finance::Bank::DE::NetBank;
 use Data::Dumper;
 
 my $account = Finance::Bank::DE::NetBank->new();
-$account->Debug(1);
-$account->connect();
+#$account->Debug(1);
 $account->login();
 print $account->transfer(
 

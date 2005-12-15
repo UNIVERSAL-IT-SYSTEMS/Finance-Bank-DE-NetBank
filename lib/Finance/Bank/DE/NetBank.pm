@@ -13,15 +13,14 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.02";
-$DEBUG   = 0;
+$VERSION = "1.03";
 
 sub Version {
     return $VERSION;
 }
 
 sub Debug {
-    $_[0] ? $DEBUG = $_[0] : return $DEBUG;
+    $_[1] ? $DEBUG = $_[1] : return $DEBUG;
 }
 
 sub new {
@@ -52,10 +51,8 @@ sub new {
 
 sub connect {
     my $self  = shift;
-    my $url   = $self->BASE_URL() . "index.jsp?blz=" . $self->BLZ();
-    my $agent = WWW::Mechanize->new( agent => $self->AGENT_TYPE(), );
-    $agent->get($url);
-    $self->AGENT($agent);
+    print STDERR "Method connect() is deprecated. Use only login() instead!\n";
+    return $self->login(@_);
 }
 
 sub login {
@@ -65,20 +62,36 @@ sub login {
         PASSWORD    => $self->PASSWORD(),
         @_
     );
+    
+    my $url   = $self->BASE_URL() . "index.jsp?blz=" . $self->BLZ();
+    my $agent = WWW::Mechanize->new( agent => $self->AGENT_TYPE(), );
+    $agent->get($url);
+    $self->AGENT($agent);
 
-    my $agent = $self->AGENT();
     $agent->field( "kundennummer", $values{'CUSTOMER_ID'} );
     $agent->field( "pin",          $values{'PASSWORD'} );
     $agent->click();
 
     print STDERR Dumper( $agent->content ) if Debug();
+    
+    if ($agent->content =~ /fieldtableerrorred/ig) {
+        return undef;
+    }
+
+    return 1;
+ 
 }
 
 sub saldo {
     my $self = shift;
     my $data = $self->statement(@_);
-    print STDERR Dumper($data) if Debug();
-    return $data->{'STATEMENT'}{'SALDO'};
+   
+    if ($data) { 
+        print STDERR Dumper($data) if Debug();
+        return $data->{'STATEMENT'}{'SALDO'};
+    } else {
+        return undef;
+    }
 }
 
 sub statement {
@@ -92,6 +105,10 @@ sub statement {
         @_
     );
 
+    # get mainpage
+    my $login_status = $self->login();
+    return undef unless $login_status;
+       
     my $agent = $self->AGENT();
 
 #   If you've problems with your environmet settings activate this and "use encodings"
@@ -132,6 +149,10 @@ sub transfer {
         TAN              => "",
         @_
     );
+    
+    # get mainpage
+    my $login_status = $self->login();
+    return undef unless $login_status;
 
     my $agent = $self->AGENT();
     my $url   = $self->BASE_URL();
@@ -140,26 +161,19 @@ sub transfer {
 
     ( $values{'AMOUNT_EURO'}, $values{'AMOUNT_CENT'} ) =
       split( /\.|,/, $values{'AMOUNT'} );
+    
     $values{'AMOUNT_CENT'} = sprintf( "%02d", $values{'AMOUNT_CENT'} );
-
     $agent->field( "auftraggeberKontonummer", $values{'SENDER_ACCOUNT'} );
-
     $agent->field( "empfaengerName", $values{'RECEIVER_NAME'} );
-
-#   $agent->field("empfaengerDatenSpeichern", $values{'RECEIVER_SAVE'}); # waiting for WWW::Mechanize support
     $agent->field( "empfaengerBankleitzahl", $values{'RECEIVER_BLZ'} );
     $agent->field( "empfaengerKontonummer",  $values{'RECEIVER_ACCOUNT'} );
-
     $agent->field( "betragEuro", $values{'AMOUNT_EURO'} );
     $agent->field( "betragCent", $values{'AMOUNT_CENT'} );
-
     $agent->field( "verwendungszweck1", $values{'COMMENT_1'} );
     $agent->field( "verwendungszweck2", $values{'COMMENT_2'} );
-
     $agent->click("btnNeuSpeichern");
 
     # sure it's right ...
-
     $agent->field( "ubo", $values{'TAN'} );
     $agent->click("btnBestaetigen");
 
@@ -169,11 +183,10 @@ sub transfer {
         $agent->content() =~ m|<span class="error">(.*?)</span>|;
         my $error = $1;
         print "ERROR: $error";
-        return ( 0, 0 );
-    }
-
-    else {
-        ( 1, $agent->content() );
+        return undef;
+    } else {
+        my $content = $agent->content();
+        return $agent->content();
     }
 
 }
@@ -260,7 +273,6 @@ Finance::Bank::DE::NetBank - Check your NetBank Bank Accounts with Perl
 						 PASSWORD => "ROUTE66",
                                                  BLZ => "70090500",
                                                  );
- $account->connect(); 
  $account->login();
  print $account->saldo();
  $account->logout();
@@ -320,10 +332,7 @@ Set $value to 1 to get some Data::Dumper outputs on STDERR.
 
 =head2 $account->connect()
 
-This method will create the user agent and connect to the online banking website.
-Also this (done by WWW::Mechanize) automagically handles the session-id handling.
-
-    $account->connect();
+deprecated. use only $account->login()
 
 =head2 $account->login(%values)
 
@@ -331,6 +340,8 @@ This method will try to log in with the provided authentication details. If
 nothing is specified the values from the constructor or the defaults will be used.
 
     $account->login(ACCOUNT => "1234");
+
+Returns undef on error.
 
 =head2 $account->saldo(%values)
 
@@ -340,6 +351,8 @@ The method uses the account number if previously set.
 You can override/set it:
 
     $account->saldo(ACCOUNT => "5555555");
+
+Returns undef on error.
 
 =head2 $account->statement(%values)
 
@@ -355,8 +368,11 @@ START_DATE and END_DATE only).
                                  END_DATE => "02.05.2005",
 			    );
 
+Returns undef on error.
+
 =head2 $account->transfer()
 
+Returns undef on error.
 
 =head2 $account->logout()
 
@@ -392,17 +408,18 @@ or email the author.
 =head1 HISTORY
 
 1.02 Wed Dec 14 15:00:00 2005
-        - fixed pod errors
-        - enhanced pod
+    - fixed pod errors
+    - enhanced pod
+        
 1.00 Wed Dec 14 00:43:00 2005
-        - changed URL to barrier free version (works without that new captcha)
-        - replaced buggy html scraping of saldo(). saldo() now uses statement() to retrive the value.
+    - changed URL to barrier free version (works without that new captcha)
+    - replaced buggy html scraping of saldo(). saldo() now uses statement() to retrive the value.
         
 0.02 Sun May 04 15:45:00 2003
-        - documentation fixes
+    - documentation fixes
 
 0.01 Sun May 04 03:00:00 2003
-	- original version;
+    - original version;
 
 =head1 THANK YOU
 

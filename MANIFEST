@@ -5,7 +5,9 @@ Todo
 lib/Finance/Bank/DE/NetBank.pm
 t/01load.t
 t/02pod.t
+test/login_test.pl
 test/transfer_test.pl
+test/saldostatement_test.pl
 test/statement_test.pl
 test/saldo_test.pl
 Makefile.PL
