@@ -7,13 +7,12 @@ Finance::Bank::DE::NetBank->mk_accessors(
     qw(BASE_URL BLZ CUSTOMER_ID PASSWORD AGENT_TYPE AGENT ACCOUNT Debug));
 
 use WWW::Mechanize;
-use HTML::TreeBuilder;
 use Text::CSV_XS;
 use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.04_01";
+$VERSION = "1.04_02";
 
 sub Version {
     return $VERSION;
@@ -303,13 +302,11 @@ This constructor will set the default values and/or user provided values for
 connection and authentication.
 
     my $account = Finance::Bank::DE::NetBank->new (
-        BASE_URL => "https://www.bankingonline.de/sparda-banking/view/",
-        BLZ => "70090500",        
-        CUSTOMER_ID => "demo",    
-        PASSWORD => "",      
-        ACCOUNT => "2777770",   
-        AGENT_TYPE => "Internet Explorer 6",
-    , @_);
+        BLZ => '70090500',        
+        CUSTOMER_ID => 'demo*,    
+        PASSWORD => '',      
+        ACCOUNT => '2777770',   
+        @_);
 
 If you don't provide any values the module will automatically use the demo account.
 
@@ -333,7 +330,7 @@ deprecated. use only $account->login()
 This method will try to log in with the provided authentication details. If
 nothing is specified the values from the constructor or the defaults will be used.
 
-    $account->login(ACCOUNT => "1234");
+    $account->login(ACCOUNT => '1234');
 
 Returns C< undef > on error.
 
@@ -344,7 +341,7 @@ The method uses the account number if previously set.
 
 You can override/set it:
 
-    $account->saldo(ACCOUNT => "5555555");
+    $account->saldo(ACCOUNT => '5555555');
 
 Returns C< undef > on error.
 
@@ -357,9 +354,9 @@ The value of TIMEFRAME can be "1" (last day only), "30" (last 30 days only), "al
 START_DATE and END_DATE only).
 
     $account->statement(
-        TIMEFRAME => "variabel",
-        START_DATE => "10.04.2005",
-        END_DATE => "02.05.2005",
+        TIMEFRAME => 'variabel',
+        START_DATE => '10.04.2005',
+        END_DATE => '02.05.2005',
     );
 
 Returns C< undef > on error.
@@ -401,13 +398,16 @@ see file 'Changes'
 =head1 THANK YOU
 
 Torsten Mueller (updated URL, saldo() bug reporting)
+
 Sascha Stock (reported bad example in POD)
 
 =head1 AUTHOR
 
-Roland Moriz
-rmoriz@cpan.org
-http://www.perl-freelancer.de/
+Roland Moriz (RMORIZ) <rmoriz@cpan.org>
+
+http://www.perl-freelancer.de/ 
+
+http://www.roland-moriz.de/
 
 =head1 COPYRIGHT
 
@@ -416,7 +416,7 @@ it and/or modify it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-Finance::Bank::DE::SpardaBank, WWW::Mechanize, Finance::Bank::LloydsTSB
+WWW::Mechanize
 
 =cut
 

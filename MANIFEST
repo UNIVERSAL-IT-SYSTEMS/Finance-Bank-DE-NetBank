@@ -6,6 +6,8 @@ MANIFEST
 MANIFEST.SKIP
 META.yml			Module meta-data (added by MakeMaker)
 README
+README.txt
+README.html
 rmoriz.pub
 SIGNATURE
 t/00signature.t
