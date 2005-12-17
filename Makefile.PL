@@ -1,24 +1,31 @@
-use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
-WriteMakefile(
-    NAME         => 'Finance::Bank::DE::NetBank',
-    VERSION_FROM => 'lib/Finance/Bank/DE/NetBank.pm', # finds $VERSION
-    ABSTRACT     => 'Check your NetBank Bank Accounts with Perl',
-  
+require 5.6.1;
+use ExtUtils::MakeMaker qw( WriteMakefile );
+use File::Spec;
+use strict;
+
+my $enable_livetest = grep /--livetest/i, @ARGV;
+my @tests = glob File::Spec->catfile( 't', '*.t' );
+push( @tests, glob File::Spec->catfile( 't', 'methods', '*.t' ) );
+push( @tests, glob File::Spec->catfile( 't', 'methods', 'live', '*.t' ) ) if $enable_livetest;
+
+
+
+my $params = {
+    NAME          => 'Finance::Bank::DE::NetBank',
+    ABSTRACT_FROM => 'lib/Finance/Bank/DE/NetBank.pm', # retrieve abstract from module
+    VERSION_FROM  => 'lib/Finance/Bank/DE/NetBank.pm', # finds $VERSION
+    AUTHOR        => 'Roland Moriz (rmoriz@cpan.org)',
     PREREQ_PM    => {	
-	"WWW::Mechanize" => "0.43",
-	"Class::Accessor" => 0,
-	"HTML::TreeBuilder" => 0,
-	"Text::CSV_XS" => 0,
-	"Encode" => 0,
-	"base" => 0,
-	
+        "WWW::Mechanize"    => "1.16",
+        "Class::Accessor"   => "0.22",
+        "Text::CSV_XS"      => "0.23",
     },	      
+    test            => { TESTS => join( " ", @tests ) },
+};
 
-    ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM => 'lib/Finance/Bank/DE/NetBank.pm', # retrieve abstract from module
-       AUTHOR        => 'Roland Moriz (rmoriz@cpan.org)') : ()),
-	      
+#if (ExtUtils::MakeMaker->can('signature_target')) {
+#    $params->{'SIGN'} = 1;
+#}
 
-);
+WriteMakefile( %$params );
+

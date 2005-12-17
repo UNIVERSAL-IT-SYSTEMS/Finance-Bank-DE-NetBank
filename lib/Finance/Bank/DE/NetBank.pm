@@ -4,7 +4,7 @@ use strict;
 use vars qw($VERSION $DEBUG);
 use base qw(Class::Accessor);
 Finance::Bank::DE::NetBank->mk_accessors(
-    qw(BASE_URL BLZ CUSTOMER_ID PASSWORD AGENT_TYPE AGENT ACCOUNT));
+    qw(BASE_URL BLZ CUSTOMER_ID PASSWORD AGENT_TYPE AGENT ACCOUNT Debug));
 
 use WWW::Mechanize;
 use HTML::TreeBuilder;
@@ -13,26 +13,22 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.03";
+$VERSION = "1.04_01";
 
 sub Version {
     return $VERSION;
 }
 
-sub Debug {
-    $_[1] ? $DEBUG = $_[1] : return $DEBUG;
-}
-
 sub new {
     my $proto  = shift;
     my %values = (
-        BASE_URL =>
-          "https://www.netbank-money.de/netbank-barrierefrei-banking/view/",
-        BLZ         => "20090500",    # NetBank BLZ
-        CUSTOMER_ID => "demo",        # Demo Login
-        PASSWORD    => "",            # Demo does not require a password
-        ACCOUNT     => "1234567",     # Demo Account Number (Kontonummer)
         AGENT_TYPE => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) ",
+        BASE_URL =>
+          'https://www.netbank-money.de/netbank-barrierefrei-banking/view/',
+        BLZ         => '20090500', # NetBank BLZ
+        CUSTOMER_ID => '',
+        PASSWORD    => '',
+        ACCOUNT     => '', 
         @_
     );
 
@@ -62,7 +58,7 @@ sub login {
         PASSWORD    => $self->PASSWORD(),
         @_
     );
-    
+   
     my $url   = $self->BASE_URL() . "index.jsp?blz=" . $self->BLZ();
     my $agent = WWW::Mechanize->new( agent => $self->AGENT_TYPE(), );
     $agent->get($url);
@@ -72,7 +68,7 @@ sub login {
     $agent->field( "pin",          $values{'PASSWORD'} );
     $agent->click();
 
-    print STDERR Dumper( $agent->content ) if Debug();
+    print STDERR Dumper( $agent->content ) if $self->Debug();
     
     if ($agent->content =~ /fieldtableerrorred/ig) {
         return undef;
@@ -87,7 +83,7 @@ sub saldo {
     my $data = $self->statement(@_);
    
     if ($data) { 
-        print STDERR Dumper($data) if Debug();
+        print STDERR Dumper($data) if $self->Debug();
         return $data->{'STATEMENT'}{'SALDO'};
     } else {
         return undef;
@@ -129,7 +125,7 @@ sub statement {
     $agent->get( $self->BASE_URL() . "/umsatzdownload.do" );
 
     my $content = $agent->content();
-    print STDERR Dumper($content) if Debug();
+    print STDERR Dumper($content) if $self->Debug();
 
     my $csv_content = $self->_parse_csv($content);
     return $csv_content;
@@ -257,8 +253,6 @@ sub _parse_csv {
 
 1;
 __END__
-# Below is the stub of documentation for your module. You better edit it!
-
 
 =head1 NAME
 
@@ -266,26 +260,28 @@ Finance::Bank::DE::NetBank - Check your NetBank Bank Accounts with Perl
 
 =head1 SYNOPSIS
 
- use Finance::Bank::DE::NetBank;
- my $account = Finance::Bank::DE::NetBank->new(
-						 CUSTOMER_ID => "12345678",
-						 ACCOUNT => "12345678",
-						 PASSWORD => "ROUTE66",
-                                                 BLZ => "70090500",
-                                                 );
- $account->login();
- print $account->saldo();
- $account->logout();
+    use Finance::Bank::DE::NetBank;
+    
+    my $account = Finance::Bank::DE::NetBank->new(
+        CUSTOMER_ID => '12345678',
+        ACCOUNT => '12345678',
+        PASSWORD => 'ROUTE66',
+        BLZ => '70090500',
+    );
+    
+    if ($account->login()) {
+        print $account->saldo();
+        $account->logout();
+    } 
+    else {
+        print 'login failed. manual interaction needed';
+    }
 
 =head1 DESCRIPTION
 
 
 This module provides a very limited interface to the webbased online banking
 interface of the German "NetBank e.G." operated by Sparda-Datenverarbeitung e.G..
-It will only work with German NetBank accounts - e.g. the Austrian Sparda Bank 
-Accounts will not work.
-
-It uses OOD and doesn't export anything.
 
 B<WARNING!> This module is neither offical nor is it tested to be 100% save! 
 Because of the nature of web-robots, B<everything may break from one day to
@@ -297,8 +293,7 @@ the source of this module yourself to reassure yourself that I am not
 doing anything untoward with your banking data. This software is useful
 to me, but is provided under B<NO GUARANTEE>, explicit or implied.
 
-You can find some basic test scripts for manual testing against the demo-banking
-accounts within the directory "test" in the source directry.
+You can find tests in the C< t > subdirectory. See L< TESTS > for more details.
 
 =head1 METHODS
 
@@ -308,19 +303,18 @@ This constructor will set the default values and/or user provided values for
 connection and authentication.
 
     my $account = Finance::Bank::DE::NetBank->new (
-                  BASE_URL => "https://www.bankingonline.de/sparda-banking/view/",
-                  BLZ => "70090500",        
-                  CUSTOMER_ID => "demo",    
-                  PASSWORD => "",      
-                  ACCOUNT => "2777770",   
-                  AGENT_TYPE => "Internet Explorer 6",
-	      , @_);
+        BASE_URL => "https://www.bankingonline.de/sparda-banking/view/",
+        BLZ => "70090500",        
+        CUSTOMER_ID => "demo",    
+        PASSWORD => "",      
+        ACCOUNT => "2777770",   
+        AGENT_TYPE => "Internet Explorer 6",
+    , @_);
 
 If you don't provide any values the module will automatically use the demo account.
 
 CUSTOMER_ID is your "Kundennummer" and ACCOUNT is the "Kontonummer" 
 (if you have only one account you can skip that)
-
 
 =head2 $account->Version()
 
@@ -328,7 +322,7 @@ returns the module version
 
 =head2 $account->Debug($value)
 
-Set $value to 1 to get some Data::Dumper outputs on STDERR.
+Provide a true  C< $value > get some Data::Dumper outputs on STDERR.
 
 =head2 $account->connect()
 
@@ -341,7 +335,7 @@ nothing is specified the values from the constructor or the defaults will be use
 
     $account->login(ACCOUNT => "1234");
 
-Returns undef on error.
+Returns C< undef > on error.
 
 =head2 $account->saldo(%values)
 
@@ -352,7 +346,7 @@ You can override/set it:
 
     $account->saldo(ACCOUNT => "5555555");
 
-Returns undef on error.
+Returns C< undef > on error.
 
 =head2 $account->statement(%values)
 
@@ -363,41 +357,36 @@ The value of TIMEFRAME can be "1" (last day only), "30" (last 30 days only), "al
 START_DATE and END_DATE only).
 
     $account->statement(
-                                 TIMEFRAME => "variabel",
-                                 START_DATE => "10.04.2005",
-                                 END_DATE => "02.05.2005",
-			    );
+        TIMEFRAME => "variabel",
+        START_DATE => "10.04.2005",
+        END_DATE => "02.05.2005",
+    );
 
-Returns undef on error.
+Returns C< undef > on error.
 
 =head2 $account->transfer()
 
-Returns undef on error.
+Returns C< undef > on error.
 
 =head2 $account->logout()
 
-This method will just log out the website and it only exists to keep the module logic clean ;-)
+well - every login method should have a logout method
 
-=head1 USAGE
+=head1 TESTS
 
- use Finance::Bank::DE::NetBank;
- use Data::Dumper;
+Since version 1.04 C<Finance::Bank::DE::NetBank> comes with a testsuite.
+It's located in the subdirectory C< t > of the distribution.
 
- my $account = Finance::Bank::DE::NetBank->new(
-                                                 BLZ => "70090500",
-                                                 CUSTOMER_ID => "xxxxxxx",
-                                                 ACCOUNT => "yyyyyyy",
-                                                 PASSWORD => "zzzzzz",
-                                                 );
- $account->connect();
- $account->login();
- print Dumper($account->statement(
-                                 TIMEFRAME => "variabel",
-                                 START_DATE => "10.04.2005",
-                                 END_DATE => "02.05.2005",
- 				 )
-             );
- $account->logout();
+To run the tests against the live NetBank demo account use this:
+
+    perl Makefile.PL --livetest
+    make test TEST_VERBOSE=1
+
+The default behaviour is not to test against the live website:
+
+    perl Makefile.PL
+    make test
+
 
 =head1 BUGS
 
@@ -407,41 +396,23 @@ or email the author.
 
 =head1 HISTORY
 
-1.02 Wed Dec 14 15:00:00 2005
-    - fixed pod errors
-    - enhanced pod
-        
-1.00 Wed Dec 14 00:43:00 2005
-    - changed URL to barrier free version (works without that new captcha)
-    - replaced buggy html scraping of saldo(). saldo() now uses statement() to retrive the value.
-        
-0.02 Sun May 04 15:45:00 2003
-    - documentation fixes
-
-0.01 Sun May 04 03:00:00 2003
-    - original version;
+see file 'Changes'
 
 =head1 THANK YOU
 
- Torsten Mueller (updated URL, saldo() bug reporting)
- Sascha Stock (reported bad example in POD)
+Torsten Mueller (updated URL, saldo() bug reporting)
+Sascha Stock (reported bad example in POD)
 
 =head1 AUTHOR
 
- Roland Moriz
- rmoriz@cpan.org
- http://www.perl-freelancer.de/
-
-Disclaimer stolen from Simon Cozens' Finance::Bank::LloydsTSB without asking for permission %-)
+Roland Moriz
+rmoriz@cpan.org
+http://www.perl-freelancer.de/
 
 =head1 COPYRIGHT
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
-
-The full text of the license can be found in the
-LICENSE file included with this module.
-
 
 =head1 SEE ALSO
 
