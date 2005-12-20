@@ -1,5 +1,9 @@
 Revision history for Perl extension Finance::Bank::DE::NetBank
 
+1.04_03     Sat Dec 20 02:30:00 CET 2005
+            ----------------------------------------------------
+            * documentation improved
+
 1.04_01     Sat Dec 17 04:17:00 CET 2005
             ----------------------------------------------------
             * added Test::More based tests

@@ -23,9 +23,9 @@ my $params = {
     test            => { TESTS => join( " ", @tests ) },
 };
 
-#if (ExtUtils::MakeMaker->can('signature_target')) {
-#    $params->{'SIGN'} = 1;
-#}
+if (MM->can('signature_target')) {
+    $params->{'SIGN'} = 1;
+}
 
 WriteMakefile( %$params );
 

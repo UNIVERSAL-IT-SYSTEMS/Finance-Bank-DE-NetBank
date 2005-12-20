@@ -12,7 +12,7 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.04_02";
+$VERSION = "1.04_03";
 
 sub Version {
     return $VERSION;
@@ -265,7 +265,6 @@ Finance::Bank::DE::NetBank - Check your NetBank Bank Accounts with Perl
         CUSTOMER_ID => '12345678',
         ACCOUNT => '12345678',
         PASSWORD => 'ROUTE66',
-        BLZ => '70090500',
     );
     
     if ($account->login()) {
@@ -302,7 +301,6 @@ This constructor will set the default values and/or user provided values for
 connection and authentication.
 
     my $account = Finance::Bank::DE::NetBank->new (
-        BLZ => '70090500',        
         CUSTOMER_ID => 'demo*,    
         PASSWORD => '',      
         ACCOUNT => '2777770',   

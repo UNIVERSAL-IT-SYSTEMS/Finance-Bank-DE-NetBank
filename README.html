@@ -55,7 +55,6 @@
         CUSTOMER_ID =&gt; '12345678',
         ACCOUNT =&gt; '12345678',
         PASSWORD =&gt; 'ROUTE66',
-        BLZ =&gt; '70090500',
     );
     
     if ($account-&gt;login()) {
@@ -91,7 +90,6 @@ to me, but is provided under <strong>NO GUARANTEE</strong>, explicit or implied.
 connection and authentication.</p>
 <pre>
     my $account = Finance::Bank::DE::NetBank-&gt;new (
-        BLZ =&gt; '70090500',        
         CUSTOMER_ID =&gt; 'demo*,    
         PASSWORD =&gt; '',      
         ACCOUNT =&gt; '2777770',   
