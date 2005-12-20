@@ -12,7 +12,7 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.04_03";
+$VERSION = "1.04";
 
 sub Version {
     return $VERSION;

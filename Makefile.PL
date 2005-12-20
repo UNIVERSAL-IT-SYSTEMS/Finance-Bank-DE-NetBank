@@ -8,8 +8,6 @@ my @tests = glob File::Spec->catfile( 't', '*.t' );
 push( @tests, glob File::Spec->catfile( 't', 'methods', '*.t' ) );
 push( @tests, glob File::Spec->catfile( 't', 'methods', 'live', '*.t' ) ) if $enable_livetest;
 
-
-
 my $params = {
     NAME          => 'Finance::Bank::DE::NetBank',
     ABSTRACT_FROM => 'lib/Finance/Bank/DE/NetBank.pm', # retrieve abstract from module
@@ -28,4 +26,3 @@ if (MM->can('signature_target')) {
 }
 
 WriteMakefile( %$params );
-

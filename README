@@ -8,7 +8,6 @@ SYNOPSIS
             CUSTOMER_ID => '12345678',
             ACCOUNT => '12345678',
             PASSWORD => 'ROUTE66',
-            BLZ => '70090500',
         );
     
         if ($account->login()) {
@@ -43,7 +42,6 @@ METHODS
     for connection and authentication.
 
         my $account = Finance::Bank::DE::NetBank->new (
-            BLZ => '70090500',        
             CUSTOMER_ID => 'demo*,    
             PASSWORD => '',      
             ACCOUNT => '2777770',   
