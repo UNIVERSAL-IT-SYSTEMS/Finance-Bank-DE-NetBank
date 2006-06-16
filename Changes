@@ -1,5 +1,10 @@
 Revision history for Perl extension Finance::Bank::DE::NetBank
 
+1.05        Fri Jun 16 03:00:00 CEST 2006
+            ----------------------------------------------------
+            * changed transfer() method to work with iTAN
+            * documentation: typo fix
+
 1.04        Tue Dec 20 13:00:00 CET 2005
             ----------------------------------------------------
             * added Test::More based tests

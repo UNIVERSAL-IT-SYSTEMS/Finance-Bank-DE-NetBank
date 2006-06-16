@@ -12,7 +12,7 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.04";
+$VERSION = "1.05_01";
 
 sub Version {
     return $VERSION;
@@ -152,38 +152,72 @@ sub transfer {
     my $agent = $self->AGENT();
     my $url   = $self->BASE_URL();
 
-    $agent->get( $url . "ueberweisung_per_heute_neu.do" );
+    $agent->get($url . "ueberweisung_per_heute_neu.do");
 
     ( $values{'AMOUNT_EURO'}, $values{'AMOUNT_CENT'} ) =
       split( /\.|,/, $values{'AMOUNT'} );
     
-    $values{'AMOUNT_CENT'} = sprintf( "%02d", $values{'AMOUNT_CENT'} );
-    $agent->field( "auftraggeberKontonummer", $values{'SENDER_ACCOUNT'} );
-    $agent->field( "empfaengerName", $values{'RECEIVER_NAME'} );
-    $agent->field( "empfaengerBankleitzahl", $values{'RECEIVER_BLZ'} );
-    $agent->field( "empfaengerKontonummer",  $values{'RECEIVER_ACCOUNT'} );
-    $agent->field( "betragEuro", $values{'AMOUNT_EURO'} );
-    $agent->field( "betragCent", $values{'AMOUNT_CENT'} );
-    $agent->field( "verwendungszweck1", $values{'COMMENT_1'} );
-    $agent->field( "verwendungszweck2", $values{'COMMENT_2'} );
+    $values{'AMOUNT_CENT'} = sprintf("%02d", $values{'AMOUNT_CENT'});
+
+    $agent->field("auftraggeberKontonummer", $values{'SENDER_ACCOUNT'});
+    $agent->field("empfaengerName",          $values{'RECEIVER_NAME'});
+    $agent->field("empfaengerBankleitzahl",  $values{'RECEIVER_BLZ'});
+    $agent->field("empfaengerKontonummer",   $values{'RECEIVER_ACCOUNT'});
+    $agent->field("betragEuro",              $values{'AMOUNT_EURO'});
+    $agent->field("betragCent",              $values{'AMOUNT_CENT'});
+    $agent->field("verwendungszweck1",       $values{'COMMENT_1'});
+    $agent->field("verwendungszweck2",       $values{'COMMENT_2'});
     $agent->click("btnNeuSpeichern");
 
-    # sure it's right ...
-    $agent->field( "ubo", $values{'TAN'} );
-    $agent->click("btnBestaetigen");
-
-    # lazy error checking
-
-    if ( $agent->content() =~ m|<span class="error">(.*)30017(.*)</span>| ) {
-        $agent->content() =~ m|<span class="error">(.*?)</span>|;
-        my $error = $1;
-        print "ERROR: $error";
-        return undef;
-    } else {
-        my $content = $agent->content();
-        return $agent->content();
+    # get TAN fieldname, index
+    my $tan_field;
+    my $tan_index;
+    my $tan;
+    
+    $agent->content =~ /<label\s*for=["']*(.*?)["']\s*>(?:Tr|TAN)(?:[a-z].*?)\s?(\d+)/gmix;
+   
+    $tan_field = $1;
+    $tan_index = $2;
+   
+    print STDERR "tan_field: $tan_field, tan_index: $tan_index\n" if $self->Debug();
+    
+    if ($tan_field && $tan_index && ref($values{'TAN'}) eq "HASH" && $values{'TAN'}->{$tan_index}) {
+        print STDERR "METHOD: TAN HASH" if $self->Debug();
+        $tan = $values{'TAN'}->{$tan_index};
+    } elsif ($tan_field && $tan_index && ref($values{'TAN'}) eq "ARRAY") {
+        print STDERR "METHOD: Object/Method" if $self->Debug();
+        my $obj    = $values{'TAN'}[0];
+        my $method = $values{'TAN'}[1];
+        eval ( $tan = $obj->$method() );
+        if ($@) {
+            print "ERROR: Could not execute TAN method: $method";
+            return undef;
+        }
+    } elsif ($tan_field && $tan_index && ref($values{'TAN'}) eq "CODE") {
+        print STDERR "METHOD: CALLBACK" if $self->Debug();
+        $tan = &{$values{'TAN'}}($tan_index);
     }
 
+    print STDERR " TAN: [$tan]\n" if $self->Debug();
+    
+    if ($tan) {
+	    $agent->field($tan_field, $tan_index);
+	    $agent->click("btnBestaetigen");
+
+        # lazy error checking
+        if ( $agent->content() =~ m|<span class="error">(.*)30017(.*)</span>| ) {
+            $agent->content() =~ m|<span class="error">(.*?)</span>|;
+            my $error = $1;
+            print "ERROR: $error";
+            return;
+        } else {
+            my $content = $agent->content();
+            return $agent->content();
+        }
+    } else {
+        print "ERROR: Could not identify requested TAN Index #";
+        return;
+    }
 }
 
 sub logout {
@@ -301,7 +335,7 @@ This constructor will set the default values and/or user provided values for
 connection and authentication.
 
     my $account = Finance::Bank::DE::NetBank->new (
-        CUSTOMER_ID => 'demo*,    
+        CUSTOMER_ID => 'demo',    
         PASSWORD => '',      
         ACCOUNT => '2777770',   
         @_);

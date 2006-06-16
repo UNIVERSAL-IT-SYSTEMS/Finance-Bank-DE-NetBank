@@ -29,6 +29,7 @@ SKIP:
 }
 
 my $dt = DateTime->now();
+$dt->set_time_zone("Europe/Berlin");
 my $today = $dt;
 
 my $month_back = $dt->clone()->subtract( DateTime::Duration->new( months => 1) );
@@ -40,7 +41,7 @@ eq_or_diff($statement->{ACCOUNT}, { 'KUNDENNUMMER' => 'demo',
 
 eq_or_diff($statement->{STATEMENT}, {
                                         'SALDO' => '552,73',
-                                        'START_DATE' => $month_back->dmy('.'),
+                                        'START_DATE' => $month_back->add( days =>1)->dmy('.'),
                                         'ACCOUNT_ID' => '1234567',
                                         'WAEHRUNG' => 'EUR',
                                         'END_DATE' => $today->dmy('.'),

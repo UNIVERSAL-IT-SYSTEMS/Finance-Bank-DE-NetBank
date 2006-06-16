@@ -42,7 +42,7 @@ METHODS
     for connection and authentication.
 
         my $account = Finance::Bank::DE::NetBank->new (
-            CUSTOMER_ID => 'demo*,    
+            CUSTOMER_ID => 'demo',    
             PASSWORD => '',      
             ACCOUNT => '2777770',   
             @_);
