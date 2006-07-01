@@ -41,7 +41,7 @@ eq_or_diff($statement->{ACCOUNT}, { 'KUNDENNUMMER' => 'demo',
 
 eq_or_diff($statement->{STATEMENT}, {
                                         'SALDO' => '552,73',
-                                        'START_DATE' => $month_back->add( days =>1)->dmy('.'),
+                                        'START_DATE' => $month_back->dmy('.'),
                                         'ACCOUNT_ID' => '1234567',
                                         'WAEHRUNG' => 'EUR',
                                         'END_DATE' => $today->dmy('.'),

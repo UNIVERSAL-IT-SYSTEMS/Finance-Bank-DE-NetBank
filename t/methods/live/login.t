@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 use Test::More tests => 4;
+#open(STDERR, ">/tmp/STDERR.out");
+
 
 use Finance::Bank::DE::NetBank;
 

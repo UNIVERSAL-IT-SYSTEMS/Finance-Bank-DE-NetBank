@@ -12,7 +12,7 @@ use Data::Dumper;
 
 $| = 1;
 
-$VERSION = "1.05_01";
+$VERSION = "1.05";
 
 sub Version {
     return $VERSION;
@@ -21,7 +21,7 @@ sub Version {
 sub new {
     my $proto  = shift;
     my %values = (
-        AGENT_TYPE => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1) ",
+        AGENT_TYPE => "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
         BASE_URL =>
           'https://www.netbank-money.de/netbank-barrierefrei-banking/view/',
         BLZ         => '20090500', # NetBank BLZ
@@ -41,6 +41,7 @@ sub new {
         $self->$key("$values{$key}");
     }
 
+    #$self->Debug(1);
     return $self;
 }
 
@@ -58,8 +59,9 @@ sub login {
         @_
     );
    
-    my $url   = $self->BASE_URL() . "index.jsp?blz=" . $self->BLZ();
+    my $url   = $self->BASE_URL() . "index.jsp?blz=" . $self->BLZ() . "&graphics=false";
     my $agent = WWW::Mechanize->new( agent => $self->AGENT_TYPE(), );
+    $agent->{agent} = "";
     $agent->get($url);
     $self->AGENT($agent);
 
@@ -121,7 +123,7 @@ sub statement {
     }
 
     $agent->click();
-    $agent->get( $self->BASE_URL() . "/umsatzdownload.do" );
+    $agent->get( $self->BASE_URL() . "umsatzdownload.do" );
 
     my $content = $agent->content();
     print STDERR Dumper($content) if $self->Debug();
